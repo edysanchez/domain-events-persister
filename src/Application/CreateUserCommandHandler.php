@@ -18,9 +18,6 @@ class CreateUserCommandHandler
     }
     public function handle(CreateUserCommand  $createUserCommand): void
     {
-        if($createUserCommand->userName() === '') {
-            throw new Exception('UserName cannot be empty');
-        }
         $this->userWriteRepository->persist(User::create($createUserCommand->userName()));
     }
 }

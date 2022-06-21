@@ -10,6 +10,10 @@ class User
 
     private function __construct(string $userName)
     {
+        if($userName === '') {
+            throw new \Exception('UserName cannot be empty');
+        }
+
         $this->userName = $userName;
     }
 
