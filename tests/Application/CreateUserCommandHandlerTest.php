@@ -30,6 +30,15 @@ class CreateUserCommandHandlerTest extends TestCase implements UserWriteReposito
         $this->assertNotNull($this->persistedUser);
     }
 
+    /** @test */
+    public function givenCorrectUserCreationShouldHaveADomainEvent(): void
+    {
+        $this->getCreateUserCommandHandler()->handle(new CreateUserCommand('UserName'));
+        $this->assertNotNull($this->persistedUser->events());
+        $this->assertCount(1, $this->persistedUser->events());
+        $this->assertEquals('UserName', $this->persistedUser->events()[0]->userName());
+    }
+
     private function getCreateUserCommandHandler(): CreateUserCommandHandler
     {
         return new CreateUserCommandHandler($this);
