@@ -2,18 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Application;
+namespace Tests\Application;
 
 use Exception;
 use Kata\Application\CreateUserCommand;
 use Kata\Application\CreateUserCommandHandler;
-use Kata\Domain\User;
-use Kata\Domain\UserWriteRepository;
 use PHPUnit\Framework\TestCase;
+use Tests\Infrastructure\Persistence\DomainEvents\TestableDomainEventsWriteRepository;
 
-class CreateUserCommandHandlerTest extends TestCase implements UserWriteRepository
+class CreateUserCommandHandlerTest extends TestCase
 {
-    private User $persistedUser;
+    private TestableDomainEventsWriteRepository $userWriteRepository;
+
+    protected function setUp()
+    {
+        $this->userWriteRepository = new TestableDomainEventsWriteRepository();
+    }
 
     /** @test */
     public function givenEmptyUserNameShouldThrowException(): void
@@ -27,25 +31,21 @@ class CreateUserCommandHandlerTest extends TestCase implements UserWriteReposito
     public function givenNonEmptyUserNameShouldPersistIt(): void
     {
         $this->getCreateUserCommandHandler()->handle(new CreateUserCommand('UserName'));
-        $this->assertNotNull($this->persistedUser);
+        $this->assertNotNull($this->userWriteRepository->persistedUsers());
     }
 
     /** @test */
     public function givenCorrectUserCreationShouldHaveADomainEvent(): void
     {
         $this->getCreateUserCommandHandler()->handle(new CreateUserCommand('UserName'));
-        $this->assertNotNull($this->persistedUser->events());
-        $this->assertCount(1, $this->persistedUser->events());
-        $this->assertEquals('UserName', $this->persistedUser->events()[0]->userName());
+        $this->assertNotNull($this->userWriteRepository->persistedUsers()[0]->events());
+        $this->assertCount(1, $this->userWriteRepository->persistedUsers()[0]->events());
+        $this->assertEquals('UserName', $this->userWriteRepository->persistedUsers()[0]->userName());
     }
 
     private function getCreateUserCommandHandler(): CreateUserCommandHandler
     {
-        return new CreateUserCommandHandler($this);
+        return new CreateUserCommandHandler($this->userWriteRepository);
     }
 
-    public function persist(User $user)
-    {
-        $this->persistedUser = $user;
-    }
 }

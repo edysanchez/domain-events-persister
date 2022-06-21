@@ -24,6 +24,10 @@ class User
         return new self($userName);
     }
 
+    public function userName(): string
+    {
+        return $this->userName;
+    }
     /** @return DomainEvent[] */
     public function events(): array
     {
