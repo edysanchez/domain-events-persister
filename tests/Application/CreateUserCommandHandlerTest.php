@@ -7,15 +7,36 @@ namespace Application;
 use Exception;
 use Kata\Application\CreateUserCommand;
 use Kata\Application\CreateUserCommandHandler;
+use Kata\Domain\User;
+use Kata\Domain\UserWriteRepository;
 use PHPUnit\Framework\TestCase;
 
-class CreateUserCommandHandlerTest extends TestCase
+class CreateUserCommandHandlerTest extends TestCase implements UserWriteRepository
 {
+    private User $persistedUser;
+
     /** @test */
     public function givenEmptyUserNameShouldThrowException(): void
     {
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('UserName cannot be empty');
-        (new CreateUserCommandHandler())->handle(new CreateUserCommand(''));
+        $this->getCreateUserCommandHandler()->handle(new CreateUserCommand(''));
+    }
+
+    /** @test */
+    public function givenNonEmptyUserNameShouldPersistIt(): void
+    {
+        $this->getCreateUserCommandHandler()->handle(new CreateUserCommand('UserName'));
+        $this->assertNotNull($this->persistedUser);
+    }
+
+    private function getCreateUserCommandHandler(): CreateUserCommandHandler
+    {
+        return new CreateUserCommandHandler($this);
+    }
+
+    public function persist(User $user)
+    {
+        $this->persistedUser = $user;
     }
 }
